@@ -10,20 +10,24 @@ class NuscenesDatset(DatasetMerger):
     def __init__(self, root_folder : str, set_type : str = 'train', seq_len = 6, padding=120):
         self.padding = padding
         dataset_list = []
-        if set_type == 'train':
-            sensor_list = ['CAM_BACK', 'CAM_BACK_RIGHT', 'CAM_FRONT', 'CAM_FRONT_LEFT']
-        elif set_type == 'test':
-            sensor_list = ['CAM_BACK_LEFT', 'CAM_FRONT_RIGHT']
-        else:
-            assert 'you shall not pass!'
-        for sensor in sensor_list:            
+        sensor_list = ['CAM_BACK', 'CAM_BACK_RIGHT', 'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_BACK_LEFT', 'CAM_FRONT_RIGHT']
+
+        for sensor in sensor_list:
             cam = RGBImageLoader(path.join(root_folder, f'{sensor}/*.jpg'))
             lidar = PCDLoader(path.join(root_folder, f'LIDAR/{sensor}/*'))
             initrinc_files = sorted(glob(path.join(root_folder, f'{sensor}/intrinsic/*.npy')), \
                                     key = lambda x : int(os.path.split(x)[-1].split('.')[0])
                                     )
-            intrinsic_list = [np.load(file) for file in initrinc_files]
+            intrinsic_list = [np.load(file) for file in initrinc_files]            
             assert len(cam) == len(lidar) == len(intrinsic_list), 'Dataset are not matching!'
+            length = len(cam)
+            if set_type == 'train':
+               dataset_slice =  slice(0, int(length*0.9))
+            elif set_type == 'test':
+                dataset_slice = slice(int(length*0.9), None)
+            else:
+                assert 'you shall not pass!'
+            cam = cam[dataset_slice]; lidar = lidar[dataset_slice]; intrinsic_list = intrinsic_list[dataset_slice]
             distortion = np.array([0,0,0,0,0.])
             dataset_1 = DatasetBatchSequencer(FusionDatasetV3(camera_dataset=cam, lidar_dataset=lidar,
                 intrinsic=intrinsic_list, distortion=distortion,

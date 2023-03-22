@@ -16,6 +16,9 @@ def FileLoader(preprocess=None):
             def __init__(self, files):
                 self.files = files
             def __getitem__(self, idx):
+                if isinstance(idx, slice):
+                    self.files = self.files[idx]
+                    return self
                 if preprocess:
                     return preprocess(func(self.files[idx]))
                 return func(self.files[idx])

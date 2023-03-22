@@ -24,15 +24,15 @@ modelrnn = RCalibNet()
 if args.dataset.upper() == "KITTI":
     root_folder = '/home/kbuyukburc/Kitti'
     modelrnn.load_state_dict(torch.load('./rcalib-rot-tra-2.ckpt'))
-    kittiset = KITTIDatsetV2(root_folder, ['00', '01', '02', '03', '04', '05',], seq_len = args.seq)
+    kittiset = KITTIDatsetV2(root_folder, ['06', '07',], seq_len = args.seq)
     train_dataloader = DataLoader(kittiset, batch_size=batch_size, shuffle=True, num_workers=4)
     padding = None
     img_out = np.zeros([512*h,512*w,3])
 elif args.dataset.upper() == "NUSCENES":
     root_folder = './script/dataset_512'
     modelrnn.load_state_dict(torch.load('./rcalib-nuscenes-5.ckpt'))
-    nuset = NuscenesDatset(root_folder, "train", seq_len = args.seq)
-    train_dataloader = DataLoader(nuset, batch_size=batch_size, shuffle=True, num_workers=8)
+    nuset = NuscenesDatset(root_folder, "test", seq_len = args.seq)
+    train_dataloader = DataLoader(nuset, batch_size=batch_size, shuffle=True, num_workers=4)
     padding = nuset.padding
     img_out = np.zeros([256*h, 256*w,3])
 else:
@@ -138,7 +138,11 @@ with torch.no_grad():
             img_out = cv2.putText(img_out, f'seq:{frame_id}', (20,70), cv2.FONT_HERSHEY_SIMPLEX,
                     color=[0,0,255],  fontScale=3, thickness=10, lineType=cv2.LINE_AA)
             cv2.imshow("RCalibNet", img_out)
-            cv2.waitKey(400)
+            key = cv2.waitKey(400)
+            if key == ord('q'):
+                break
+        if key == ord('q'):
+            break
         extrinsic_predict_np = np.append(extrinsic_predict_np, matrix_to_rtvec(extrinsic_chained).detach().cpu().numpy(), axis=0)
         extrinsic_gt_np = np.append(extrinsic_gt_np, pose_org.detach().cpu().numpy(), axis=0)
 
@@ -147,10 +151,5 @@ with torch.no_grad():
 
     err_axis = np.abs(extrinsic_predict_np - extrinsic_gt_np).mean(0)
     print(f'\n loss : {np.array(loss_list).mean()} {err_axis}', end='\n')
-    with open('./result.txt', 'a') as fw:
-        abs_err = np.abs(extrinsic_predict_np - extrinsic_gt_np)* np.array([180/np.pi, 180/np.pi, 180/np.pi, 1,1,1])
-        abs_rot_norm = np.linalg.norm(abs_err.mean(0)[:3])
-        abs_tra_norm = np.linalg.norm(abs_err.mean(0)[3:])
-        fw.write(f'{args.batch},{args.seq},{abs_rot_norm},{abs_tra_norm}\n')
 
     

@@ -80,9 +80,9 @@ class RCalibNet(nn.Module):
         self.n_layers = 3
         self.hidden_dim = 4096
         self.rnn = nn.RNN(input_size=2048, hidden_size=self.hidden_dim, batch_first=True, num_layers=self.n_layers)        
-        self.dropout_1 = nn.Dropout1d(0.5)
+        self.dropout_1 = nn.Dropout1d(0.2)
         self.fc1 = nn.Linear(4096, 128)
-        self.dropout_2 = nn.Dropout1d(0.5)
+        self.dropout_2 = nn.Dropout1d(0.2)
         self.fc2 = nn.Linear(128, 6)
 
     def forward(self, x_img, x_depth):

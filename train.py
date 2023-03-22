@@ -13,17 +13,16 @@ parser.add_argument('-d', '--dataset', help="Which dataset KITTI, NuScenes", def
 args = parser.parse_args()
 # Load Model latest checkpoint
 modelrnn = RCalibNet()
-# modelrnn.load_state_dict(torch.load('./rcalib-resnet34-sq-4-b-12.ckpt'))
 # Data loader 
 if args.dataset.upper() == "KITTI":
     root_folder = '/home/kbuyukburc/Kitti'
-    modelrnn.load_state_dict(torch.load('./rcalib-rot-tra-2.ckpt'))
+    #modelrnn.load_state_dict(torch.load('./rcalib-rot-tra-2.ckpt'))
     kittiset = KITTIDatsetV2(root_folder, ['00', '01', '02', '03', '04', '05',], seq_len = args.seq)
     train_dataloader = DataLoader(kittiset, batch_size=args.batch, shuffle=True, num_workers=8)
     padding = None
 elif args.dataset.upper() == "NUSCENES":
     root_folder = './script/dataset_512'
-    modelrnn.load_state_dict(torch.load('./rcalib-nuscenes-3.ckpt'))
+    # modelrnn.load_state_dict(torch.load('./rcalib-nuscenes-3.ckpt'))
     nuset = NuscenesDatset(root_folder, "train", seq_len = args.seq)
     train_dataloader = DataLoader(nuset, batch_size=args.batch, shuffle=True, num_workers=8)
     padding = nuset.padding
@@ -32,7 +31,7 @@ else:
 
 modelrnn.cuda()
 modelrnn.train()
-optimizer = optim.Adam(modelrnn.parameters(), lr=5e-6)
+optimizer = optim.Adam(modelrnn.parameters(), lr=1e-4)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.5)
 
 for epoch in range(60):

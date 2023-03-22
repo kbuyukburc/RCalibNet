@@ -13,10 +13,7 @@ parser.add_argument('-d', '--dataset', help="Which dataset KITTI, NuScenes", def
 args = parser.parse_args()
 # Load Model latest checkpoint
 modelrnn = RCalibNet()
-# modelrnn.load_state_dict(torch.load('./rcalib-rot-tra-2.ckpt'))
-# modelrnn.load_state_dict(torch.load('./rcalib-resnet34-sq-4-b-12.ckpt'))
-
-# Data loader 
+ 
 # Data loader 
 if args.dataset.upper() == "KITTI":
     modelrnn.load_state_dict(torch.load('./rcalib-rot-tra-2.ckpt'))
